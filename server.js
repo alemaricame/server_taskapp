@@ -14,30 +14,32 @@ const config = mysql.createConnection({
 
 // SELECT ALL
 app.get('/tasks', (request, response) => {
+    console.log("view all");
     config.query('SELECT * FROM todos', (error, result) => {
         if (error) throw error;
- 
         response.send(result);
     });
 });
 
 //INSERT
-app.post('/tasks', (request, response) => {
-    pool.query('INSERT INTO todos SET ?', request.body, (error, result) => {
+app.post('/insert', (request, response) => {
+    console.log(JSON.parse(request.body));
+    config.query('INSERT INTO todos (idtarea,title,priority,description,name) VALUES (?,?,?,?,?)', request.body, (error, result) => {
         if (error) throw error;
-
-        response.status(201).send(`Tarea número ${result.idtarea} agregada`);
+ 
+        response.status(201).send(`User added with ID: ${result.idtarea}`);
     });
 });
 
 //DELETE
-app.delete('/tasks/:idtarea',(request,response)=>{
-    const id = request.params.idtarea;
-    config.query('DELETE FROM todos WHERE idtarea=?',id, (error, result) => {
-        if (error) throw error;
- 
-        response.send('Tarea eliminada!');
-    });
+app.get('/delete/:idtarea',(request,response)=>{
+    console.log("delete");
+       console.log("id:", request.params.idtarea);
+
+         config.query('DELETE FROM todos WHERE idtarea= ?',request.params.idtarea, (error, result) => {
+            if (error) throw error;
+            response.status(201).send("Eliminado");
+         });
 });
 
 // UPDATE
