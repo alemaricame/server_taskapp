@@ -2,6 +2,7 @@ const express = require('express');
 const port = 3000;
 const app = express();
 const mysql = require('mysql');
+const bodyParser = require('body-parser');
 
 // Set database connection credentials
 const config = mysql.createConnection({
@@ -10,7 +11,12 @@ const config = mysql.createConnection({
     password: '',
     database: 'tareas',
 });
-
+//Body parser
+app.use( express.static( "public" ) );
+app.use( bodyParser.json() );       // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+  extended: true
+}));
 
 // SELECT ALL
 app.get('/tasks', (request, response) => {
@@ -22,14 +28,16 @@ app.get('/tasks', (request, response) => {
 });
 
 //INSERT
-app.post('/insert', (request, response) => {
-    console.log(JSON.parse(request.body));
-    config.query('INSERT INTO todos (idtarea,title,priority,description,name) VALUES (?,?,?,?,?)', request.body, (error, result) => {
-        if (error) throw error;
- 
-        response.status(201).send(`User added with ID: ${result.idtarea}`);
-    });
-});
+app.post('/insert', function (request, response) {
+    //console.log(request);
+    console.log(request.body);
+    
+    config.query("INSERT INTO todos (idtarea, title, priority, description, name) VALUES ('"+request.body.idtarea+"','"+request.body.title+"','"+request.body.priority+"','"+request.body.description+"','"+request.body.name+"')", request.body , function (err, result) {
+        if (err) throw err;
+        console.log("1 record inserted");
+      });
+    response.redirect("/tasks");
+ });
 
 //DELETE
 app.get('/delete/:idtarea',(request,response)=>{
@@ -42,16 +50,6 @@ app.get('/delete/:idtarea',(request,response)=>{
          });
 });
 
-// UPDATE
-app.put('/task/:idtarea', (request, response) => {
-    const id = request.params.id;
- 
-    config.query('UPDATE todos SET ? WHERE id = ?', [request.body, id], (error, result) => {
-        if (error) throw error;
- 
-        response.send('Tarea editada!');
-    });
-});
 
 app.listen(3000, () => {
    console.log("El servidor está inicializado en el puerto 3000");
